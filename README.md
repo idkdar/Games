@@ -1,3 +1,1 @@
 # Games
-//
-log GAMES
