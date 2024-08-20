@@ -1,0 +1,68 @@
+import random
+import os
+
+class MazeRunner:
+    def __init__(self, width, height):
+        self.width = width
+        self.height = height
+        self.maze = self.generate_maze()
+        self.player_pos = (1, 1)
+        self.goal_pos = (width - 2, height - 2)
+    
+    def generate_maze(self):
+        maze = [['#' for _ in range(self.width)] for _ in range(self.height)]
+        
+        def carve_passages(x, y):
+            directions = [(2, 0), (-2, 0), (0, 2), (0, -2)]
+            random.shuffle(directions)
+            for dx, dy in directions:
+                nx, ny = x + dx, y + dy
+                if 1 <= nx < self.width - 1 and 1 <= ny < self.height - 1:
+                    if maze[ny][nx] == '#':
+                        maze[y + dy//2][x + dx//2] = ' '
+                        maze[ny][nx] = ' '
+                        carve_passages(nx, ny)
+        
+        carve_passages(1, 1)
+        maze[1][1] = 'P'
+        maze[self.height-2][self.width-2] = 'G'
+        return maze
+    
+    def display_maze(self):
+        os.system('cls' if os.name == 'nt' else 'clear')
+        for row in self.maze:
+            print(''.join(row))
+    
+    def move_player(self, dx, dy):
+        x, y = self.player_pos
+        nx, ny = x + dx, y + dy
+        if 0 <= nx < self.width and 0 <= ny < self.height and self.maze[ny][nx] != '#':
+            self.maze[y][x] = ' '
+            self.maze[ny][nx] = 'P'
+            self.player_pos = (nx, ny)
+    
+    def is_won(self):
+        return self.player_pos == self.goal_pos
+    
+    def play(self):
+        while True:
+            self.display_maze()
+            move = input("Move (WASD): ").upper()
+            if move == 'W':
+                self.move_player(0, -1)
+            elif move == 'A':
+                self.move_player(-1, 0)
+            elif move == 'S':
+                self.move_player(0, 1)
+            elif move == 'D':
+                self.move_player(1, 0)
+            
+            if self.is_won():
+                self.display_maze()
+                print("Congratulations! You've reached the goal!")
+                break
+
+if __name__ == "__main__":
+    width, height = 21, 21  # Must be odd numbers to generate a perfect maze
+    game = MazeRunner(width, height)
+    game.play()
