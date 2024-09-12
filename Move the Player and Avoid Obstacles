@@ -1,0 +1,108 @@
+import pygame
+import random
+
+# Initialize Pygame
+pygame.init()
+
+# Define screen dimensions
+SCREEN_WIDTH = 800
+SCREEN_HEIGHT = 600
+
+# Define colors
+WHITE = (255, 255, 255)
+BLACK = (0, 0, 0)
+RED = (255, 0, 0)
+
+# Create the screen object
+screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
+
+# Set title of the window
+pygame.display.set_caption('Avoid the Falling Blocks!')
+
+# Define the player object
+player_size = 50
+player_x = SCREEN_WIDTH // 2 - player_size // 2
+player_y = SCREEN_HEIGHT - 2 * player_size
+player_speed = 10
+
+# Define obstacle parameters
+obstacle_size = 50
+obstacle_speed = 5
+obstacle_list = []
+
+# Clock to control frame rate
+clock = pygame.time.Clock()
+
+# Function to create obstacles
+def create_obstacle():
+    x_pos = random.randint(0, SCREEN_WIDTH - obstacle_size)
+    return [x_pos, 0]
+
+# Function to draw obstacles
+def draw_obstacles(obstacles):
+    for obstacle in obstacles:
+        pygame.draw.rect(screen, RED, (obstacle[0], obstacle[1], obstacle_size, obstacle_size))
+
+# Function to update obstacle positions
+def update_obstacles(obstacles):
+    for obstacle in obstacles:
+        obstacle[1] += obstacle_speed
+    obstacles = [obstacle for obstacle in obstacles if obstacle[1] < SCREEN_HEIGHT]
+    return obstacles
+
+# Function to detect collisions
+def detect_collision(player_pos, obstacle_pos):
+    p_x, p_y = player_pos
+    o_x, o_y = obstacle_pos
+
+    if (o_x < p_x < o_x + obstacle_size or o_x < p_x + player_size < o_x + obstacle_size) and \
+       (o_y < p_y < o_y + obstacle_size or o_y < p_y + player_size < o_y + obstacle_size):
+        return True
+    return False
+
+# Main game loop
+game_over = False
+score = 0
+
+while not game_over:
+    # Handle events
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            game_over = True
+
+    # Get keys pressed
+    keys = pygame.key.get_pressed()
+    if keys[pygame.K_LEFT] and player_x > 0:
+        player_x -= player_speed
+    if keys[pygame.K_RIGHT] and player_x < SCREEN_WIDTH - player_size:
+        player_x += player_speed
+
+    # Create obstacles
+    if random.randint(1, 20) == 1:
+        obstacle_list.append(create_obstacle())
+
+    # Update obstacle positions
+    obstacle_list = update_obstacles(obstacle_list)
+
+    # Check for collisions
+    for obstacle in obstacle_list:
+        if detect_collision((player_x, player_y), obstacle):
+            game_over = True
+
+    # Clear the screen
+    screen.fill(BLACK)
+
+    # Draw player
+    pygame.draw.rect(screen, WHITE, (player_x, player_y, player_size, player_size))
+
+    # Draw obstacles
+    draw_obstacles(obstacle_list)
+
+    # Update the display
+    pygame.display.flip()
+
+    # Control frame rate
+    clock.tick(30)
+
+# Quit the game
+pygame.quit()
